@@ -1,0 +1,172 @@
+DATASET: 'DADatasetSSDA'
+REPEAT: 1
+
+DATA_SPLIT: {
+    'train': train,
+    'test': val
+}
+
+SRC_DATASET: 
+    _BASE_CONFIG_: tools/cfgs/dataset_configs/nuscenes_dataset.yaml
+    DATASET: 'NuScenesDataset'
+    DATA_PATH: './data/nuscenes'
+    VERSION: 'v1.0-trainval'
+    #SHIFT_COOR: [0.0, 0.0, -1.8]
+    REPEAT: 1
+    MAX_SWEEPS: 10
+    PRED_VELOCITY: False
+    BALANCED_RESAMPLING: False
+
+    DATA_SPLIT: {
+        'train': train,
+        'test': val
+    }
+    CLASS_NAMES: ['car', 'truck', 'bus', 'motorcycle', 'pedestrian']
+
+    INFO_PATH: {
+        'train': [nuscenes_infos_10sweeps_train_train_2.50_1.pkl],
+        'test': [nuscenes_infos_10sweeps_val_train_2.50_1.pkl], #[omega_infos_1sweeps_train_train_test.pkl],
+    }
+    POINT_CLOUD_RANGE: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+
+    DATA_AUGMENTOR:
+        DISABLE_AUG_LIST: ['placeholder', 'gt_sampling']
+        AUG_CONFIG_LIST:
+            - NAME: gt_sampling
+              DB_INFO_PATH:
+                - nuscenes_dbinfos_10sweeps_train_2.50_1.pkl
+              PREPARE: {
+                filter_by_min_points: [
+                    'car:5','truck:5', 'construction_vehicle:5', 'bus:5', 'trailer:5',
+                    'barrier:5', 'motorcycle:10', 'bicycle:10', 'pedestrian:10', 'traffic_cone:5'
+                ],
+              }
+
+              SAMPLE_GROUPS: [
+                'car:2','truck:3', 'construction_vehicle:7', 'bus:4', 'trailer:6',
+                'barrier:2', 'motorcycle:6', 'bicycle:6', 'pedestrian:2', 'traffic_cone:2'
+              ]
+
+              NUM_POINT_FEATURES: 5
+              DATABASE_WITH_FAKELIDAR: False
+              REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
+              LIMIT_WHOLE_SCENE: True
+              
+            - NAME: random_world_flip
+              ALONG_AXIS_LIST: ['x', 'y']
+
+            - NAME: random_world_rotation
+              WORLD_ROT_ANGLE: [-0.78539816, 0.78539816]
+
+            - NAME: random_world_scaling
+              WORLD_SCALE_RANGE: [0.95, 1.1]
+            
+            - NAME: random_world_translation
+              NOISE_TRANSLATE_STD: 0.5
+              ALONG_AXIS_LIST: ['x', 'y', 'z']
+
+    POINT_FEATURE_ENCODING: {
+        encoding_type: absolute_coordinates_encoding,
+        used_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
+        src_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
+    }
+
+    DATA_PROCESSOR:
+        - NAME: mask_points_and_boxes_outside_range
+          REMOVE_OUTSIDE_BOXES: True
+
+        - NAME: shuffle_points
+          SHUFFLE_ENABLED: {
+            'train': True,
+            'test': False
+          }
+
+        - NAME: transform_points_to_voxels_placeholder
+          VOXEL_SIZE: [0.2, 0.2, 8.0]
+    
+          
+    
+TRG_DATASET:
+    # _BASE_CONFIG_: tools/cfgs/dataset_configs/omega_dataset_ssl_centerpoint.yaml
+    _BASE_CONFIG_: tools/cfgs/dataset_configs/omega_dataset_ssl.yaml
+    # DATASET: 'OmegaDataset_CenterPoint_SSL'
+    DATASET: 'OmegaDatasetSSL'
+    DATA_PATH: './data/omega/'
+    VERSION: 'v0.5-omega-trainval'
+    MAX_SWEEPS: 1
+    PRED_VELOCITY: False
+    SET_NAN_VELOCITY_TO_ZEROS: True
+    BALANCED_RESAMPLING: True 
+    FILTER_MIN_POINTS_IN_GT: 1
+
+    REPEAT: 5
+
+    CLASS_NAMES: ['car', 'truck', 'bus', 'motorcycle', 'pedestrian']
+    SHIFT_COOR: [0.0, 0.0, -1.8]
+
+    DATA_SPLIT: {
+        'train': train,
+        'test': val
+    }
+
+    INFO_PATH: {
+        'train': [omega_infos_1sweeps_train_train_0.10_2.pkl, omega_infos_1sweeps_unlabeled_train_0.10_2.pkl],
+        'test': [omega_infos_1sweeps_val_train_0.10_2.pkl],
+    }
+
+    POINT_CLOUD_RANGE: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+
+    DATA_AUGMENTOR:
+        DISABLE_AUG_LIST: ['placeholder', 'gt_sampling']
+        AUG_CONFIG_LIST:
+            - NAME: gt_sampling
+              DB_INFO_PATH:
+                - nuscenes_dbinfos_10sweeps_train_2.50_1.pkl
+              PREPARE: {
+                filter_by_min_points: [
+                    'car:5','truck:5', 'construction_vehicle:5', 'bus:5', 'trailer:5',
+                    'barrier:5', 'motorcycle:10', 'bicycle:10', 'pedestrian:10', 'traffic_cone:5'
+                ],
+              }
+
+              SAMPLE_GROUPS: [
+                'car:2','truck:3', 'construction_vehicle:7', 'bus:4', 'trailer:6',
+                'barrier:2', 'motorcycle:6', 'bicycle:6', 'pedestrian:2', 'traffic_cone:2'
+              ]
+
+              NUM_POINT_FEATURES: 5
+              DATABASE_WITH_FAKELIDAR: False
+              REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
+              LIMIT_WHOLE_SCENE: True
+              
+            - NAME: random_world_flip
+              ALONG_AXIS_LIST: ['x', 'y']
+
+            - NAME: random_world_rotation
+              WORLD_ROT_ANGLE: [-0.78539816, 0.78539816]
+
+            - NAME: random_world_scaling
+              WORLD_SCALE_RANGE: [0.95, 1.1]
+            
+            - NAME: random_world_translation
+              NOISE_TRANSLATE_STD: 0.5
+              ALONG_AXIS_LIST: ['x', 'y', 'z']
+
+    POINT_FEATURE_ENCODING: {
+        encoding_type: absolute_coordinates_encoding,
+        used_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
+        src_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
+    }
+
+    DATA_PROCESSOR:
+        -   NAME: mask_points_and_boxes_outside_range
+            REMOVE_OUTSIDE_BOXES: True
+
+        - NAME: shuffle_points
+          SHUFFLE_ENABLED: {
+            'train': True,
+            'test': False
+          }
+
+        - NAME: transform_points_to_voxels_placeholder
+          VOXEL_SIZE: [0.2, 0.2, 8.0]

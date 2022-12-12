@@ -1,0 +1,31 @@
+DATASET: 'DADatasetDANN'
+
+DATA_SPLIT: {
+    'train': train,
+    'test': val
+}
+
+SRC_DATASET: 
+    _BASE_CONFIG_: tools/cfgs/dataset_configs/nuscenes_dataset.yaml
+    REPEAT: 1
+    CLASS_NAMES: ['car', 'truck', 'bus', 'motorcycle', 'pedestrian']
+    MAX_SWEEPS: 10
+    PRED_VELOCITY: False
+    BALANCED_RESAMPLING: True
+    INFO_PATH: {
+        'train': [nuscenes_infos_10sweeps_train_train_0.50_1.pkl],
+        'test': [nuscenes_infos_10sweeps_val.pkl],
+    }
+TRG_DATASET:
+    _BASE_CONFIG_: tools/cfgs/dataset_configs/omega_dataset.yaml
+    REPEAT: 3
+    SHIFT_COOR: [0.0, 0.0, -1.8]
+    DATA_PATH: './data/omega'
+    VERSION: 'v0.5-omega-trainval'
+    MAX_SWEEPS: 1
+    PRED_VELOCITY: False
+    BALANCED_RESAMPLING: True
+    INFO_PATH: {
+        'train': [omega_infos_1sweeps_train.pkl],
+        'test': [omega_infos_1sweeps_val.pkl],
+    }
